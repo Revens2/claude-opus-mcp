@@ -1,4 +1,4 @@
-//! Contrat claude-opus-gateway-rs : politique 1R/2W + acteur + gateway HTTP.
+//! Contrat claude-opus-mcp : politique 1R/2W + acteur + gateway HTTP.
 //!
 //! Preuves exigibles du lot claude-opus (passerelle) :
 //! * `opus_health` autorise en lecture, `opus_think`/`opus_session`
@@ -9,7 +9,7 @@
 
 use std::collections::HashSet;
 
-use claude_opus_gateway_rs::{policy, OUTILS_ECRITURE, OUTILS_LECTURE, READ_SCOPE, WRITE_SCOPE};
+use claude_opus_mcp::{policy, OUTILS_ECRITURE, OUTILS_LECTURE, READ_SCOPE, WRITE_SCOPE};
 use mcp_auth::policy::{ToolClass, ToolPolicy};
 
 fn scopes(s: &[&str]) -> HashSet<String> {
@@ -53,18 +53,18 @@ fn visibles_1_3() {
 fn oauth_cfg() -> mcp_auth::oauth::OAuthConfig {
     mcp_auth::oauth::OAuthConfig {
         issuer: "https://mymcps.duckdns.org/oauth/claude-opus".to_string(),
-        resource_url: claude_opus_gateway_rs::RESOURCE_URL.to_string(),
-        resource_name: claude_opus_gateway_rs::RESOURCE_NAME.to_string(),
+        resource_url: claude_opus_mcp::RESOURCE_URL.to_string(),
+        resource_name: claude_opus_mcp::RESOURCE_NAME.to_string(),
         default_scope: READ_SCOPE.to_string(),
         valid_scopes: vec![READ_SCOPE.to_string(), WRITE_SCOPE.to_string()],
         extra_submit_scopes: vec![WRITE_SCOPE.to_string()],
         consent_hash: String::new(),
-        static_client_id: claude_opus_gateway_rs::STATIC_CLIENT_ID.to_string(),
+        static_client_id: claude_opus_mcp::STATIC_CLIENT_ID.to_string(),
     }
 }
 
 fn gateway_test() -> axum::Router {
-    use claude_opus_gateway_rs::{build_router, ServiceConfig};
+    use claude_opus_mcp::{build_router, ServiceConfig};
 
     build_router(ServiceConfig {
         upstream: "http://127.0.0.1:9".to_string(),
@@ -113,12 +113,12 @@ async fn health_et_prm_opus() {
     let bytes = axum::body::to_bytes(res.into_body(), 4096).await.unwrap();
     let v: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
     assert_eq!(v["status"], "ok");
-    assert_eq!(v["service"], "claude-opus-gateway-rs");
+    assert_eq!(v["service"], "claude-opus-mcp");
 
     let app = gateway_test();
     let res = app
         .oneshot(
-            Request::get(claude_opus_gateway_rs::PRM_ALIAS)
+            Request::get(claude_opus_mcp::PRM_ALIAS)
                 .body(Body::empty())
                 .unwrap(),
         )
@@ -127,7 +127,7 @@ async fn health_et_prm_opus() {
     assert_eq!(res.status(), StatusCode::OK);
     let bytes = axum::body::to_bytes(res.into_body(), 8192).await.unwrap();
     let v: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
-    assert_eq!(v["resource"], claude_opus_gateway_rs::RESOURCE_URL);
+    assert_eq!(v["resource"], claude_opus_mcp::RESOURCE_URL);
 }
 
 #[tokio::test]
@@ -136,7 +136,7 @@ async fn ecriture_sans_portee_refusee_avant_upstream() {
     use axum::http::{Request, StatusCode};
     use tower::ServiceExt;
 
-    use claude_opus_gateway_rs::{build_router, ServiceConfig};
+    use claude_opus_mcp::{build_router, ServiceConfig};
     let app = build_router(ServiceConfig {
         upstream: "http://127.0.0.1:9".to_string(),
         static_token: "y".repeat(32),
@@ -187,7 +187,7 @@ async fn relais_injecte_acteur() {
                 .and_then(|v| v.to_str().ok())
                 .unwrap_or("")
                 .to_string();
-            assert_eq!(acteur, claude_opus_gateway_rs::STATIC_CLIENT_ID);
+            assert_eq!(acteur, claude_opus_mcp::STATIC_CLIENT_ID);
             assert_eq!(
                 h.get("x-astra-gw-mode").and_then(|v| v.to_str().ok()),
                 Some("cli")
@@ -206,7 +206,7 @@ async fn relais_injecte_acteur() {
     let addr = listener.local_addr().unwrap();
     tokio::spawn(async move { axum::serve(listener, mock).await.unwrap() });
 
-    use claude_opus_gateway_rs::{build_router, ServiceConfig};
+    use claude_opus_mcp::{build_router, ServiceConfig};
     let app = build_router(ServiceConfig {
         upstream: format!("http://127.0.0.1:{}", addr.port()),
         static_token: "x".repeat(32),
@@ -241,7 +241,7 @@ async fn relais_injecte_acteur() {
 async fn pont_fichier_session_existante_passe_bearer() {
     use axum::body::Body;
     use axum::http::{Request, StatusCode};
-    use claude_opus_gateway_rs::{build_router_with_filestore, ServiceConfig};
+    use claude_opus_mcp::{build_router_with_filestore, ServiceConfig};
     use tower::ServiceExt;
 
     let dir = std::env::temp_dir().join(format!(

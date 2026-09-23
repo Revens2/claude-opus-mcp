@@ -3,7 +3,7 @@
 # rapatriee). Idempotent : ne regenere jamais un fichier existant non vide.
 set -euo pipefail
 F=/opt/astra-gateway-rs/.mcp_token
-sudo install -d -o astra-app -g astra-app -m 0755 /opt/claude-opus-gateway-rs
+sudo install -d -o astra-app -g astra-app -m 0755 /opt/claude-opus-mcp
 if [ -s "$F" ]; then
   echo "[bearer] deja present (longueur seule) :"
   sudo wc -c "$F"

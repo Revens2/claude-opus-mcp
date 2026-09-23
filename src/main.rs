@@ -1,6 +1,6 @@
-//! claude-opus-gateway-rs — facade Rust devant l'upstream Python (`:8794`, mode Opus).
+//! claude-opus-mcp — facade Rust devant l'upstream Python (`:8794`, mode Opus).
 //!
-//! Assemble `claude_opus_gateway_rs::build_router` (aucune auth upstream requise,
+//! Assemble `claude_opus_mcp::build_router` (aucune auth upstream requise,
 //! isolation systemd comme le Python ; `x-astra-gw-acteur` injecte apres
 //! authentification — header conserve car exige par `mcp_server.py` cote Python).
 //!
@@ -10,7 +10,7 @@
 //! * `OPUS_GW_RS_UPSTREAM` (defaut `http://127.0.0.1:8794`, loopback requis),
 //! * `OPUS_GW_RS_PORT` (defaut `18996` canary ; `8796` a la bascule),
 //! * `OPUS_GW_RS_TOKEN` (>= 32 car.) OU `OPUS_GW_RS_TOKEN_FILE`
-//!   (defaut `/opt/claude-opus-gateway-rs/.mcp_token`, repli
+//!   (defaut `/opt/claude-opus-mcp/.mcp_token`, repli
 //!   `/opt/astra-gateway-rs/.mcp_token`) — fail-closed,
 //! * `OPUS_GW_RS_TOKEN_SCOPES` (defaut lecture+ecriture, quoté dans l'unit),
 //! * `OPUS_GW_RS_CONSENT_HASH` (empreinte PBKDF2, vide = consentement refuse).
@@ -18,9 +18,7 @@
 //!   pont READ-ONLY vers le magasin Python existant, sessions existantes sans
 //!   re-consentement ; vide = pont desactive).
 
-use claude_opus_gateway_rs::{
-    ISSUER_DEFAULT, READ_SCOPE, RESOURCE_NAME, RESOURCE_URL, WRITE_SCOPE,
-};
+use claude_opus_mcp::{ISSUER_DEFAULT, READ_SCOPE, RESOURCE_NAME, RESOURCE_URL, WRITE_SCOPE};
 use mcp_auth::oauth::OAuthConfig;
 
 /// Recopie `ASTRA_GW_RS_*` vers `OPUS_GW_RS_*` quand ce dernier est absent
@@ -72,7 +70,7 @@ fn load_static_token() -> Result<String, String> {
     let path = std::env::var("OPUS_GW_RS_TOKEN_FILE")
         .ok()
         .filter(|v| !v.trim().is_empty())
-        .unwrap_or_else(|| "/opt/claude-opus-gateway-rs/.mcp_token".to_string());
+        .unwrap_or_else(|| "/opt/claude-opus-mcp/.mcp_token".to_string());
     match std::fs::read_to_string(&path) {
         Ok(raw) => {
             let tok = raw.trim().to_string();
@@ -81,7 +79,7 @@ fn load_static_token() -> Result<String, String> {
             }
             Ok(tok)
         }
-        Err(e) if path == "/opt/claude-opus-gateway-rs/.mcp_token" => {
+        Err(e) if path == "/opt/claude-opus-mcp/.mcp_token" => {
             // Repli transition : ancien fichier 0600 existant.
             let ancien = "/opt/astra-gateway-rs/.mcp_token";
             let raw = std::fs::read_to_string(ancien)
@@ -98,7 +96,7 @@ fn load_static_token() -> Result<String, String> {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    mcp_observe::init("claude-opus-gateway-rs");
+    mcp_observe::init("claude-opus-mcp");
 
     // Transition une version : `ASTRA_GW_RS_*` -> `OPUS_GW_RS_*`.
     mirror_legacy_env();
@@ -163,8 +161,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let port = env.port;
     let upstream_log = env.upstream.clone();
     let mount = mcp_gateway::config::filestore_mount(&env);
-    let app = claude_opus_gateway_rs::build_router_with_filestore(
-        claude_opus_gateway_rs::ServiceConfig {
+    let app = claude_opus_mcp::build_router_with_filestore(
+        claude_opus_mcp::ServiceConfig {
             upstream: env.upstream,
             static_token: env.static_token,
             static_token_scopes: env.token_scopes,
@@ -176,7 +174,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 valid_scopes: vec![READ_SCOPE.to_string(), WRITE_SCOPE.to_string()],
                 extra_submit_scopes: vec![WRITE_SCOPE.to_string()],
                 consent_hash: env.consent_hash,
-                static_client_id: claude_opus_gateway_rs::STATIC_CLIENT_ID.to_string(),
+                static_client_id: claude_opus_mcp::STATIC_CLIENT_ID.to_string(),
             },
             max_body_bytes: mcp_http::hardening::DEFAULT_MAX_BODY_BYTES,
         },
@@ -186,7 +184,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing::info!(
         port,
         upstream = %upstream_log,
-        "claude-opus-gateway-rs prete (boucle locale uniquement)"
+        "claude-opus-mcp prete (boucle locale uniquement)"
     );
     axum::serve(listener, app)
         .with_graceful_shutdown(mcp_core::lifecycle::shutdown_signal())

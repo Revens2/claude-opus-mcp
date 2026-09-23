@@ -1,4 +1,4 @@
-"""Mock upstream astra-mcp (mode Opus) pour smoke local claude-opus-gateway-rs.
+"""Mock upstream astra-mcp (mode Opus) pour smoke local claude-opus-mcp.
 
 - Sans auth (comme le Python : isolation systemd).
 - Sert initialize / tools/list (3 outils) / tools/call opus_health /

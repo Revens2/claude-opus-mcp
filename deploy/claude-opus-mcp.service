@@ -1,0 +1,46 @@
+[Unit]
+Description=Astra MCP facade Rust (prod, loopback 8796)
+After=network-online.target astra-mcp.service
+Wants=network-online.target
+
+[Service]
+# Prod directe : aucune prod astra restante (cutover 15/09).
+# ISSUER claude-opus, UPSTREAM :8794, PORT :8796 (fallback ASTRA_GW_RS_* auto, rien a dupliquer).
+User=astra-app
+Group=astra-app
+WorkingDirectory=/opt/claude-opus-mcp
+Environment=OPUS_GW_RS_ISSUER=https://mymcps.duckdns.org/claude-opus
+Environment=OPUS_GW_RS_UPSTREAM=http://127.0.0.1:8794
+Environment=OPUS_GW_RS_PORT=8796
+Environment=OPUS_GW_RS_TOKEN_FILE=/opt/claude-opus-mcp/.mcp_token
+Environment="OPUS_GW_RS_TOKEN_SCOPES=claude-opus:lecture claude-opus:ecriture"
+ExecStart=/opt/claude-opus-mcp/claude-opus-mcp
+Restart=always
+RestartSec=3
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/claude-opus-mcp
+UMask=0077
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+RemoveIPC=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+IPAddressAllow=localhost
+IPAddressDeny=any
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

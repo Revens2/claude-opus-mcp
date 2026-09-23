@@ -1,5 +1,5 @@
 [package]
-name = "claude-opus-gateway-rs"
+name = "claude-opus-mcp"
 version = "0.3.0"
 edition = "2021"
 rust-version = "1.82"
@@ -10,11 +10,11 @@ publish = false
 [workspace]
 
 [lib]
-name = "claude_opus_gateway_rs"
+name = "claude_opus_mcp"
 path = "src/lib.rs"
 
 [[bin]]
-name = "claude-opus-gateway-rs"
+name = "claude-opus-mcp"
 path = "src/main.rs"
 
 [dependencies]

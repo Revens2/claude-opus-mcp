@@ -254,7 +254,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "claude-opus-gateway-rs"
+name = "claude-opus-mcp"
 version = "0.3.0"
 dependencies = [
  "axum",

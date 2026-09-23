@@ -1,4 +1,4 @@
-# claude-opus-gateway-rs — facade Rust devant l'upstream Python fige
+# claude-opus-mcp — facade Rust devant l'upstream Python fige
 
 Miroir de `astra_gateway` Python : validation Bearer + politique explicite
 1 lecture / 2 ecritures / 0 admin + proxy vers `astra_mcp` (`:8794`,

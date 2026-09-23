@@ -1,4 +1,4 @@
-//! Bibliotheque partagee `claude-opus-gateway-rs` (contrat + politique + assemblage).
+//! Bibliotheque partagee `claude-opus-mcp` (contrat + politique + assemblage).
 //!
 //! Miroir de `astra_gateway` Python : validation Bearer + politique explicite
 //! 1 lecture / 2 ecritures / 0 admin + proxy vers l'upstream Python
@@ -213,7 +213,7 @@ fn build_router_full(
         .with_state(app_state);
 
     let app = Router::new()
-        .merge(mcp_http::health::router("claude-opus-gateway-rs", "/mcp"))
+        .merge(mcp_http::health::router("claude-opus-mcp", "/mcp"))
         .merge(auth_router(oauth_state.clone()))
         .merge(protected_resource_router(oauth_state, &[PRM_ALIAS]))
         .merge(mcp_route);
