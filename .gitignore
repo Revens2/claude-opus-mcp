@@ -1,0 +1,9 @@
+*.log
+dist/
+coverage/
+tmp/
+node_modules/
+.git/
+target/
+*.tar.gz
+.env
