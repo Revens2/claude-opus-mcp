@@ -1,7 +1,7 @@
 //! claude-opus-mcp — facade Rust devant l'upstream Python (`:8794`, mode Opus).
 //!
 //! Assemble `claude_opus_mcp::build_router` (aucune auth upstream requise,
-//! isolation systemd comme le Python ; `x-astra-gw-acteur` injecte apres
+//! isolation systemd comme le Python ; `x-opus-gw-acteur` injecte apres
 //! authentification — header conserve car exige par `mcp_server.py` cote Python).
 //!
 //! Environnement (prefixe `OPUS_GW_RS_*`, fallback lecture `ASTRA_GW_RS_*`

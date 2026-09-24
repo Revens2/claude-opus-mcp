@@ -7,7 +7,7 @@
 //!
 //! Differences assumees vs `build_gateway` du framework (metier local au
 //! depot, jamais dans le framework) :
-//! * identite acteur : `x-astra-gw-acteur` (client_id du jeton valide) +
+//! * identite acteur : `x-opus-gw-acteur` (client_id du jeton valide) +
 //!   `x-astra-gw-mode` (`cli`/`oauth`) injectes vers l'upstream (conserves :
 //!   exiges par `mcp_server.py` cote Python, inchanges) ;
 //! * challenge 401 vers l'URL PRM exacte du Python.
@@ -112,7 +112,7 @@ fn unauthorized(prm_url: &str) -> Response {
 
 /// Middleware local : comme `bearer_middleware` du framework, mais propage en
 /// plus l'identite acteur (`ClientIdentity`) pour l'injection
-/// `x-astra-gw-acteur` vers l'upstream.
+/// `x-opus-gw-acteur` vers l'upstream.
 async fn acteur_middleware(
     State(state): State<AuthState>,
     mut req: Request,
@@ -337,7 +337,7 @@ async fn forward(
         } else {
             "oauth"
         };
-        builder = builder.header("x-astra-gw-acteur", id);
+        builder = builder.header("x-opus-gw-acteur", id);
         builder = builder.header("x-astra-gw-mode", mode);
     }
     if *method == Method::POST {
