@@ -341,7 +341,12 @@ async fn forward(
         builder = builder.header("x-astra-gw-mode", mode);
     }
     if *method == Method::POST {
-        builder = builder.timeout(Duration::from_secs(mcp_http::hardening::PROXY_TIMEOUT_SECS));
+        // Timeout TOTAL (corps SSE inclus) : 60 s coupait les tours longs -> cancel distant.
+        let secs = std::env::var("OPUS_GW_RS_POST_TIMEOUT_SECS")
+            .ok()
+            .and_then(|v| v.parse::<u64>().ok())
+            .unwrap_or(3600);
+        builder = builder.timeout(Duration::from_secs(secs));
     }
     if let Some(b) = body {
         builder = builder.body(b);
